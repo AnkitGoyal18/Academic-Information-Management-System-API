@@ -1,12 +1,13 @@
 from users.database import Base
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.dialects.postgresql import UUID
+from uuid import uuid4
 
 
 class User(Base):
     __tablename__ = "users"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(String, primary_key=True)
     firstName = Column(String)
     lastName = Column(String)
     personalEmail = Column(String)

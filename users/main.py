@@ -2,6 +2,7 @@ from fastapi import FastAPI, Depends, status, Response
 from users import schemas, models
 from users.database import engine, SessionLocal
 from sqlalchemy.orm import Session
+from uuid import uuid4
 
 app = FastAPI()
 
@@ -16,12 +17,13 @@ def get_db():
 
 @app.post("/users", status_code=status.HTTP_201_CREATED )
 def create_user(user: schemas.User, db: Session = Depends(get_db)):
-    user.id = 1
+    user.id = uuid4().__str__()
     new_user = models.User(**user.dict())
+    # new_user.id = uuid4().hex
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
-    return {"data": user, "status": "success", "code": "SUCCESS"}
+    return {"data": new_user, "status": "success", "code": "SUCCESS"}
 
 
 @app.get("/users")
@@ -55,3 +57,7 @@ def delete_user_by_id(id: int, db: Session = Depends(get_db)):
     db.query(models.User).filter(models.User.id == id).delete(synchronize_session=False)
     db.commit()
     return {"data": f"User with id {id} is deleted successfully"}
+
+
+if __name__ == "__main__":
+    models.Base.metadata.create_all(engine)

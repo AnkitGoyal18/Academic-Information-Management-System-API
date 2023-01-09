@@ -47,10 +47,12 @@ def get_user_by_id(id: str, response: Response, db: Session = Depends(get_db)):
 
 @app.put("/users/{id}", status_code=status.HTTP_202_ACCEPTED)
 def update_user_by_id(id: str, user: schemas.User, db: Session = Depends(get_db)):
-    current_user = db.query(models.User).filter(models.User.id == id).update(user)
-    current_user.update(user.dict())
+    user.id = id
+    current_user = db.query(models.User).filter(models.User.id == id).update(user.dict())
     db.commit()
-    return {"data":user}
+    if current_user:
+        return {"data": user, "status": "updated", "code": "UPDATED"}
+    return {"data": "Fail to update the User"}
 
 @app.delete("/users")
 def all_users(db: Session = Depends(get_db)):

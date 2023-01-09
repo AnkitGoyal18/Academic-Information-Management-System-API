@@ -16,14 +16,17 @@ def get_db():
         db.close()
 
 @app.post("/users", status_code=status.HTTP_201_CREATED )
-def create_user(user: schemas.User, db: Session = Depends(get_db)):
-    user.id = uuid4().hex
-    new_user = models.User(**user.dict())
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-    return {"data": new_user, "status": "success", "code": "SUCCESS"}
-
+def create_user(user: schemas.User, response: Response, db: Session = Depends(get_db)):
+    check_user = db.query(models.User).filter(models.User.registerNumber == user.registerNumber).first()
+    if not check_user:
+        user.id = uuid4().hex
+        new_user = models.User(**user.dict())
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+        return {"data": new_user, "status": "success", "code": "SUCCESS"}
+    response.status_code=status.HTTP_406_NOT_ACCEPTABLE
+    return {"data": f"User with register number {user.registerNumber} already exists", "status": "failure", "code": "FAILURE"}
 
 @app.get("/users")
 def all_users(db: Session = Depends(get_db)):

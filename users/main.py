@@ -17,9 +17,8 @@ def get_db():
 
 @app.post("/users", status_code=status.HTTP_201_CREATED )
 def create_user(user: schemas.User, db: Session = Depends(get_db)):
-    user.id = uuid4().__str__()
+    user.id = uuid4().hex
     new_user = models.User(**user.dict())
-    # new_user.id = uuid4().hex
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
@@ -32,7 +31,7 @@ def all_users(db: Session = Depends(get_db)):
     return {"data": users, "count": users.__len__()}
 
 @app.get("/users/{id}")
-def get_user_by_id(id: int, response: Response, db: Session = Depends(get_db)):
+def get_user_by_id(id: str, response: Response, db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.id == id).first()
     if not user:
         response.status_code=status.HTTP_404_NOT_FOUND
@@ -40,7 +39,7 @@ def get_user_by_id(id: int, response: Response, db: Session = Depends(get_db)):
     return {"data": user}
 
 @app.put("/users/{id}", status_code=status.HTTP_202_ACCEPTED)
-def update_user_by_id(id: int, user: schemas.User, db: Session = Depends(get_db)):
+def update_user_by_id(id: str, user: schemas.User, db: Session = Depends(get_db)):
     current_user = db.query(models.User).filter(models.User.id == id).update(user)
     current_user.update(user.dict())
     db.commit()
@@ -53,7 +52,7 @@ def all_users(db: Session = Depends(get_db)):
     return {"data": "All users deleted"}
 
 @app.delete("/users/{id}")
-def delete_user_by_id(id: int, db: Session = Depends(get_db)):
+def delete_user_by_id(id: str, db: Session = Depends(get_db)):
     db.query(models.User).filter(models.User.id == id).delete(synchronize_session=False)
     db.commit()
     return {"data": f"User with id {id} is deleted successfully"}
